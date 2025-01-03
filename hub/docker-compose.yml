@@ -1,0 +1,68 @@
+services:
+  # mqtt_broker:
+  #   image: eclipse-mosquitto:2
+  #   container_name: mqtt_broker
+  #   ports:
+  #     - "1883:1883"
+  #   network_mode: host
+  #   # networks:
+  #   #   - backend
+  #   volumes:
+  #     - ./mosquitto/config:/mosquitto/config:rw
+
+  mqtt_adapter:
+    build:
+      context: ./mqtt_adapter
+    container_name: mqtt_adapter
+    depends_on:
+      - influxdb
+      # - mqtt_broker
+    environment:
+      - BROKER_HOST=localhost
+      - BROKER_PORT=1883
+      - INFLUXDB_HOST=localhost
+      - INFLUXDB_PORT=8086
+      - INFLUXDB_DATABASE=mqtt_data
+      - INFLUXDB_TOKEN=cdWWWFSf-c1GhWLqUr_rtR1PdTIIWV2oFOzZRiEyPKu6nL3xOz6hT9hNIEei_8BR3xeLObF4BjZfZ6BPXBnNNQ==
+      - INFLUXDB_ORG=-
+      - INFLUXDB_BUCKET=th
+    network_mode: host
+    # networks:
+    #   - backend
+
+  influxdb:
+    image: influxdb:2.7
+    container_name: influxdb
+    ports:
+      - "8086:8086"
+    volumes:
+      - influxdb_data:/var/lib/influxdb2
+    environment:
+      - INFLUXDB_ADMIN_USER=admin
+      - INFLUXDB_ADMIN_PASSWORD=adminpassword
+      - INFLUXDB_DB=mqtt_data
+    network_mode: host
+    # networks:
+    #   - backend
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    depends_on:
+      - influxdb
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=adminpassword
+    network_mode: host
+    # networks:
+    #   - backend
+
+networks:
+  backend:
+    driver: bridge
+
+volumes:
+  influxdb_data:
+  config:
